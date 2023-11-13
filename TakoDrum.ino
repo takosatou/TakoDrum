@@ -498,7 +498,7 @@ void loop() {
   } else if (playing) {
     on_play();
   } else {
-    // On switching from PLAY to STOP, save the date to the SD card.
+    // On switching from PLAY to STOP, save the data to the SD card.
     if (prev_playing) {
       save_data();
       count = 0;
