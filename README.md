@@ -4,6 +4,7 @@ TakoDrum
 TakoDrumは、Bare Conductive の Touch Board を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込無事も可能です。
 
 # 各部の説明
+![panel](https://github.com/takosatou/TakoDrum/assets/52827488/ffbaf423-6855-4952-863d-ea559199a3aa)
 
 - RESET ... リセットボタン。タッチパッドの感度の自動調整をします。起動時や、タッチパッドの反応が悪い時、タッチパッドの上に紙などを置いて使用するときに押してください。リセットボタンを押すと、数秒間LEDが明滅してから復帰します。
 - VOLUME ... 音量を調整します。いちばん左に回すと電源OFFになります。
@@ -51,6 +52,10 @@ STOP/PLAYスイッチを左のSTOPにしている時、DR-55と同様に、RECOR
 
 STOP/PLAYスイッチを右のSTARTにすると、入力したパターンを再生します。
 
+
+https://github.com/takosatou/TakoDrum/assets/52827488/485c4f15-3738-4780-af94-5a3363d04036
+
+
 # ルーパーモード
 
 STOP/PLAYスイッチを右のSTARTにして再生している時、RECORDボタンまたはERASEボタンを押しながらタッチパッドをタップすると、リアルタイムにパターン入力できます。
@@ -60,6 +65,10 @@ RECORDボタンを押しながら入力したタッチパッドをタップす�
 ERASEボタンを押しながらタッチパッドをタッチすると、タッチしている間、メモリーから消去されて音が出なくなります。特定の音色を消したいときには、ERASEボタンと対象の音色のタッチパッドをループが一巡するまで押し続けます。
 
 RECORDボタンとERASEボタンを同時押ししてタッチパッドをタップすると、タップしたパターンに入れ替えます。
+
+
+https://github.com/takosatou/TakoDrum/assets/52827488/20e47aa9-2cdc-4470-aa3f-20d8b55de052
+
 
 # パターンのコピーと消去
 
@@ -82,6 +91,10 @@ SOUND SETスイッチを右にすると、音色設定モードになります�
 RECORDボタンかERASEボタンを押すと音色リストを順番に変えていきます。
 RECORDボタンが番号が小さくなり、ERASEボタンが大きくなります。
 リストの端まで達するともう一方の端に移ります。
+
+
+
+https://github.com/takosatou/TakoDrum/assets/52827488/db90fb47-f50e-40a4-b867-e29ad5822104
 
 
 ## 音色リスト
@@ -169,6 +182,7 @@ Touch BoardのA/D変換器は10bit (=最大値1024) です。抵抗器に誤差�
 ### A0
 
 VOLUME用に、10kΩBの可変抵抗器を繋げます。
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/d09198ca-7228-426d-8059-5665c4f914ea)
 
 ### A1
 
@@ -191,6 +205,7 @@ ACCENT用に、10kΩBの可変抵抗器を繋げます。
 | 5 | 4V | 818 |
 | 6 | 5V | 1023 |
 
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/98c4332b-c110-48b1-9826-b8073a8c018e)
 
 
 ### A4
@@ -204,13 +219,18 @@ ACCENT用に、10kΩBの可変抵抗器を繋げます。
 
 R-2Rラダー型D/A変換回路では、R＝5kΩとしています。
 
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/08d195b7-e5fe-4286-9154-fd78e6171686)
+
 ### A5
 
 RECORD、ERASEボタンを、R-2Rラダー型D/A変換回路を通じて接続します。
 
 R-2Rラダー型D/A変換回路では、R＝50kΩとしています。ボタンは10kΩ抵抗器を使ってプルダウンしています。
 
-### A11 (Pin 12)
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/fb94f8bc-b3cb-434a-a531-e3a0a6793f9a)
+
+
+### Pin 12 (A11)
 
 A/AB/Bの3Pトグルスイッチを接続します。センター端子を20kΩでGNDに接地し、A端子に10Ω、B端子に33kΩでそれぞれ5Vに繋げると、下記のように分圧できます。
 
@@ -220,9 +240,12 @@ A/AB/Bの3Pトグルスイッチを接続します。センター端子を20kΩ�
 | AB | 0V | 0 |
 | B  | 5✖️20/53=1.89V | 386 |
 
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/7ddd5f0b-13f2-486b-ac7e-274436b8235c)
+
 ### Reset
 
 これはアナログ入力ではありませんが、プッシュスイッチを介して、GNDに繋げます。
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/cc7d08a1-8e4c-4aa5-b012-1404128f9277)
 
 ## タッチパッド入力
 
@@ -237,14 +260,21 @@ E0〜E11までの端子から、リード線を引き出して、リン青銅板
 
 アンプは、秋月のPAM8012使用2ワットD級アンプモジュールを使いました。
 https://akizukidenshi.com/catalog/g/gK-08217/
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/b001f5dc-a3b0-44e7-b90a-09af82128b01)
 
 ### Pin13 LED
 10kΩ抵抗を通じてLEDに繋げます。
+
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/d7d60776-0a8d-462b-9863-a0984a2ea067)
+
 
 ## 電源
 標準的な電源プラグと、エフェクター用に使われるセンターアースの電源プラグの両方に対応するため、ダイオードブリッジを介して入力します。
 
 9Vから5Vに変換するためにDCDCコンバータを使います。今回はワンパッケージになった三端子DC/DCレギュレーター:ROHM BP5293-50 (https://akizukidenshi.com/catalog/g/gM-11188/) を使いました。
+
+![image](https://github.com/takosatou/TakoDrum/assets/52827488/bd8d2885-91b9-410e-b99b-9a8e15df8114)
+
 
 # SDカードの保存フォーマット
 
