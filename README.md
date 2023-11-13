@@ -174,23 +174,18 @@ VS1053bは、MP3デコーダーとMIDI音源を切り替えて使用できます
 
 なお、MP3デコーダーとして使うと、同時再生可能な音声は1つになってしまいます。
 
+![inner](https://github.com/takosatou/TakoDrum/assets/52827488/93454a28-dbd9-43fb-ac22-13e0a1897f26)
+
 ## アナログ入力
 
 可変抵抗器やスイッチ類は、下記のようにTouch Boardのアナログ入力端子に接続します。基準電圧としてAREF端子の出力を用います。
 Touch BoardのA/D変換器は10bit (=最大値1024) です。抵抗器に誤差があるのでA/D変換器の値にはばらつきが生じます。
 
-### A0
+### A0、A1、A2
 
-VOLUME用に、10kΩBの可変抵抗器を繋げます。
+VOLUME、TEMPO、ACCENT用に、それぞれ10kΩBの可変抵抗器を繋げます。
+
 ![image](https://github.com/takosatou/TakoDrum/assets/52827488/d09198ca-7228-426d-8059-5665c4f914ea)
-
-### A1
-
-TEMPO用に、10kΩBの可変抵抗器を繋げます。
-
-### A2
-
-ACCENT用に、10kΩBの可変抵抗器を繋げます。
 
 ### A3
 
