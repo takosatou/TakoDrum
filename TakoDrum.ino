@@ -241,7 +241,26 @@ uint8_t accent = 0;
 
 char filename[] = "takodrum.dat";
 
-uint16_t prev_bank_v;
+class DeNoiser {
+  uint16_t prev_v_;
+  uint8_t count_;
+  const uint8_t TH = 5;
+public:
+  DeNoiser() : prev_v_(0), count_(0) {}
+  bool eq(uint16_t v) {
+    if (prev_v_ == v) {
+      if (++count_ >= TH) {
+        return true;
+      }
+      return false;
+    }
+    prev_v_ = v;
+    count_ = 0;
+    return false;
+  }
+};
+
+DeNoiser bank_v, switch_v;
 
 int diff(int a, int b) {
   return a > b ? a - b : b - a;
@@ -261,13 +280,15 @@ void get_controls() {
   // Serial.println(sbuf);
 
   v = analogRead(PIN_A4) + 32;
-  steps = (v & 0x0080) ? STEP12 : STEP16;
-  metronome = (v & 0x0200) != 0;
-  prev_playing = playing;
-  playing = (v & 0x0040) != 0;
-  sound_set = (v & 0x100) != 0;
-  // sprintf(sbuf, "%d %d %d %d", steps, metronome, playing, sound_set);
-  // Serial.println(sbuf);
+  if (switch_v.eq(v)) {
+    steps = (v & 0x0080) ? STEP12 : STEP16;
+    metronome = (v & 0x0200) != 0;
+    prev_playing = playing;
+    playing = (v & 0x0040) != 0;
+    sound_set = (v & 0x100) != 0;
+    // sprintf(sbuf, "%d %d %d %d", steps, metronome, playing, sound_set);
+    // Serial.println(sbuf);
+  }
 
   // variation A/AB/B
   v = analogRead(PIN_A11);
@@ -278,21 +299,21 @@ void get_controls() {
   // read the BANK rotally switch
   v = analogRead(PIN_A3);
   // ignore noisy values
-  if (v == prev_bank_v) {
+  if (bank_v.eq(v)) {
     uint16_t u = (v + 102) / 204;
     if (diff(u * 204, v) < 5) {
       prev_bank_number = bank_number;
       bank_number = u;
+      // Serial.println(bank_number, DEC);
     }
   }
-  prev_bank_v = v;
 
   accent = analogRead(PIN_A2) * (127.0 - NORMAL_VELOCITY) / 1023 + NORMAL_VELOCITY;
 }
 
 void blink_LED(int i) {
   delay(500);
-  while (i > 0) {
+  while (i >= 0) {
     delay(200);
     analogWrite(LED_BUILTIN, 255);
     delay(200);
@@ -303,7 +324,9 @@ void blink_LED(int i) {
 }
 
 void load_data() {
-  get_controls();
+  do {
+    get_controls();
+  } while (bank_number == 0xff);
   // if you press RECORD button on booting, load the 'takodru{bank_number}.dat' file.
   if (record) {
     filename[7] = bank_number + '1';
