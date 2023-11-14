@@ -37,8 +37,6 @@
 #include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SdFat.h>
-// #include <avr/sleep.h>
-// #include <avr/wdt.h>
 
 const uint32_t BAUD_RATE = 115200;
 const uint8_t MPR121_ADDR = 0x5C;
@@ -70,16 +68,14 @@ void noteOn(byte channel, byte note, byte attack_velocity) {
   talkMIDI((0x90 | channel), note, attack_velocity);
 }
 
-void noteOff(byte channel, byte note, byte release_velocity) {
-  talkMIDI((0x80 | channel), note, release_velocity);
-}
-
 void setup() {
   Serial.begin(BAUD_RATE);
   mySerial.begin(31250);  // setup soft serial for MIDI control
 
   // while (!Serial)
   //   ;
+
+  pinMode(PIN_A11, INPUT);
 
   if (!sd.begin(SD_SEL, SPI_HALF_SPEED)) {
     sd.initErrorHalt();
@@ -89,6 +85,7 @@ void setup() {
   } else {
     Serial.println("SD OK");
   }
+  setup_drum_data();
 
   if (!MPR121.begin(MPR121_ADDR)) {
     Serial.println("err MPR121");
@@ -119,9 +116,6 @@ void setup() {
 
   // initialise MIDI
   setupMidi();
-
-  setup_drums();
-  pinMode(PIN_A11, INPUT);
 }
 
 /**
@@ -231,9 +225,9 @@ unsigned long t = 0;
 unsigned long prev_t = 0;
 uint16_t interval = 125;
 
-bool metronome = true;
+bool metronome = false;
 bool playing = false;
-bool prev_playing = true;
+bool prev_playing = false;
 bool sound_set = false;
 bool record = false;
 bool prev_record = false;
@@ -243,12 +237,69 @@ bool prev_erase = false;
 const uint8_t NORMAL_VELOCITY = 0x50;
 const uint8_t LED_HI = 0x80;
 const uint8_t LED_LO = 0x10;
+uint8_t accent = 0;
 
-const char* filename = "takodrum.dat";
-bool loaded = false;
+char filename[] = "takodrum.dat";
+
+void get_controls() {
+  // char sbuf[64];
+  uint16_t v = analogRead(PIN_A0) * 127.0 / 1023;
+  talkMIDI(0xB0, 0x07, v); // set volume  max 127
+
+  prev_record = record;
+  prev_erase = erase;
+  v = analogRead(PIN_A5) + 128;
+  record = (v & 0x0100);
+  erase = (v & 0x0200);
+  // sprintf(sbuf, "v=%d %d %d", v, record, erase);
+  // Serial.println(sbuf);
+
+  v = analogRead(PIN_A4) + 32;
+  steps = (v & 0x0080) ? STEP12 : STEP16;
+  metronome = (v & 0x0200) != 0;
+  prev_playing = playing;
+  playing = (v & 0x0040) != 0;
+  sound_set = (v & 0x100) != 0;
+  // sprintf(sbuf, "%d %d %d %d", steps, metronome, playing, sound_set);
+  // Serial.println(sbuf);
+
+  // variation A/AB/B
+  v = analogRead(PIN_A11);
+  // sprintf(sbuf, "%d", v);
+  // Serial.println(sbuf);
+  variation = v < 10 ? VARIATION_AB : v < 512 ? VARIATION_B : VARIATION_A;
+
+  v = analogRead(PIN_A3);
+  // 1Serial.println(v, DEC);
+  prev_bank_number = bank_number;
+  bank_number = (v + 102) / 204;
+
+  accent = analogRead(PIN_A2) * (127.0 - NORMAL_VELOCITY) / 1023 + NORMAL_VELOCITY;
+}
+
+void blink_LED() {
+  char c = filename[7];
+  int i = (c >= '1' && c <= '6') ? c - '0' : 0;
+  while (i > 0) {
+    delay(300);
+    analogWrite(LED_BUILTIN, 255);
+    delay(300);
+    analogWrite(LED_BUILTIN, 0);
+    i--;
+  }
+  delay(1000);
+}
 
 void load_data() {
-  // Serial.println("loading SD");
+  get_controls();
+  // if you press RECORD button on booting, load the 'takodru{bank_number}.dat' file.
+  if (record) {
+    filename[7] = bank_number + '1';
+    blink_LED();
+  }
+
+  Serial.println("loading SD");
+  Serial.println(filename);
   if (!file.open(filename, O_READ)) {
     Serial.println("OP err");
     return;
@@ -258,13 +309,12 @@ void load_data() {
   }
   file.close();
   Serial.println("loaded");
-  loaded = true;
 }
 
 void save_data() {
-  if (!loaded) return;
-  // Serial.println("Saving SD");
-  if (!file.open(filename, O_WRITE)) {
+  Serial.println("Saving SD");
+  Serial.println(filename);
+  if (!file.open(filename, O_WRITE | O_CREAT | O_TRUNC)) {
     Serial.println("OP err");
     return;
   }
@@ -273,9 +323,10 @@ void save_data() {
   }
   file.close();
   Serial.println("saved");
+  blink_LED();
 }
 
-void setup_drums() {
+void setup_drum_data() {
   for (int i = 0; i < N_BANK * 2; i++) {
     memcpy(banks[i].sounds, INITIAL_SOUNDS, N_SOUND);
   }
@@ -284,23 +335,26 @@ void setup_drums() {
 
 uint8_t last_sound = 0;
 
+void touch_and_sound() {
+  uint8_t sound = 0xff;
+  uint8_t velocity = MPR121.getTouchData(ACCENT - 1) ?  accent : NORMAL_VELOCITY;
+  for (int i = 0; i < N_SOUND; i++) {
+    if (MPR121.isNewTouch(i)) {
+      noteOn(0, sounds[i], velocity);
+      sound = i;
+    }
+  }
+  if (sound != 0xff) {
+    last_sound = sound;
+  }
+}
+
 /**
    If the SOUND-SET switch is ON, you can select sound for the tapped sensor 
    by pressing RECORD and ERASE buttons.
  */
 void sound_set_mode() {
-  uint8_t sound = 0xff;
-  for (int i = 0; i < N_SOUND; i++) {
-    uint16_t bit = 1 << i;
-    if (MPR121.isNewTouch(i)) {
-      sound = i;
-      break;
-    }
-  }
-  if (sound != 0xff) {
-    last_sound = sound;
-    noteOn(0, sounds[last_sound], NORMAL_VELOCITY);
-  }
+  touch_and_sound();
 
   const uint8_t FIRST_SOUND = 27;
   const uint8_t LAST_SOUND = 87;
@@ -350,8 +404,7 @@ void on_play() {
 
     data[count] = (data[count] & ~erase_data) | record_data;
 
-    uint16_t accent = analogRead(PIN_A2) * (127.0 - NORMAL_VELOCITY) / 1023 + NORMAL_VELOCITY;
-    int velocity = ((data[count] & ACCENT_BIT) || (!erase && (tmp_data & ACCENT_BIT))) ? accent : NORMAL_VELOCITY;
+    uint8_t velocity = ((data[count] & ACCENT_BIT) || (!erase && (tmp_data & ACCENT_BIT))) ? accent : NORMAL_VELOCITY;
 
     for (int i = 0; i < N_SOUND; i++) {
       uint16_t bit = 1 << i;
@@ -384,16 +437,7 @@ void on_play() {
    At first, select the sound by tapping a touch sensor, then press the note or rest button.
  */
 void on_stop() {
-  uint8_t sound = 0xff;
-  for (int i = 0; i < N_SOUND; i++) {
-    if (MPR121.isNewTouch(i)) {
-      noteOn(0, sounds[i], NORMAL_VELOCITY);
-      sound = i;
-    }
-  }
-  if (sound != 0xff) {
-    last_sound = sound;
-  }
+  touch_and_sound();
 
   if (record && !prev_record) {
     data[count] |= (1 << last_sound);
@@ -413,29 +457,6 @@ void on_stop() {
   delay(30);
 }
 
-#if 0
-ISR(WDT_vect) {
-  wdt_disable();
-}
-
-void my_sleep_mode() {
-  ADCSRA = 0;
-  MCUSR = 0;
-  WDTCSR = bit(WDCE) | bit(WDE);
-  WDTCSR = bit(WDIE) | bit(WDP3) | bit(WDP0);
-  wdt_reset();
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  noInterrupts();
-  sleep_enable();
-
-  // MCUCR = bit(BODS) | bit(BODSE);
-  // MCUCR = bit(BODS);
-  interrupts();
-  sleep_cpu();
-  sleep_disable();
-}
-#endif
-
 void loop() {
   t = millis();
   if (prev_t == 0) {
@@ -443,39 +464,9 @@ void loop() {
     return;
   }
 
-  uint16_t volume = analogRead(PIN_A0) * 127.0 / 1023;
-  talkMIDI(0xB0, 0x07, volume); // set volume  max 127
-
   MPR121.updateAll();
 
-  // char sbuf[64];
-  prev_record = record;
-  prev_erase = erase;
-  uint16_t v = analogRead(PIN_A5) + 128;
-  record = (v & 0x0100);
-  erase = (v & 0x0200);
-  // sprintf(sbuf, "v=%d %d %d", v, record, erase);
-  // Serial.println(sbuf);
-
-  v = analogRead(PIN_A4) + 32;
-  steps = (v & 0x0080) ? STEP12 : STEP16;
-  metronome = (v & 0x0200) != 0;
-  prev_playing = playing;
-  playing = (v & 0x0040) != 0;
-  sound_set = (v & 0x100) != 0;
-  // sprintf(sbuf, "%d %d %d %d", steps, metronome, playing, sound_set);
-  // Serial.println(sbuf);
-
-  // variation A/AB/B
-  v = analogRead(PIN_A11);
-  // sprintf(sbuf, "%d", v);
-  // Serial.println(sbuf);
-  variation = v < 10 ? VARIATION_AB : v < 512 ? VARIATION_B : VARIATION_A;
-
-  v = analogRead(PIN_A3);
-  // 1Serial.println(v, DEC);
-  prev_bank_number = bank_number;
-  bank_number = (v + 102) / 204;
+  get_controls();
 
   Bank& cur_bank = banks[(steps == STEP16 ? 0 : 1) * N_BANK + bank_number];
   data = &cur_bank.data[variation == VARIATION_B ? STEP16 : 0];
