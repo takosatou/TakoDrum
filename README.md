@@ -1,7 +1,7 @@
 TakoDrum
 
 # 概要
-TakoDrumは、Bare Conductive の Touch Board を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込無事も可能です。
+TakoDrumは、Bare Conductive の Touch Board を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込みも可能です。
 
 # 各部の説明
 ![panel](https://github.com/takosatou/TakoDrum/assets/52827488/ffbaf423-6855-4952-863d-ea559199a3aa)
@@ -240,6 +240,7 @@ A/AB/Bの3Pトグルスイッチを接続します。センター端子を20kΩ�
 ### Reset
 
 これはアナログ入力ではありませんが、プッシュスイッチを介して、GNDに繋げます。
+
 ![image](https://github.com/takosatou/TakoDrum/assets/52827488/cc7d08a1-8e4c-4aa5-b012-1404128f9277)
 
 ## タッチパッド入力
