@@ -210,8 +210,8 @@ struct Bank {
 const uint8_t N_BANK = 6;
 
 Bank banks[N_BANK * 2]; // for step16 and step12
-uint8_t bank_number = 0;
-uint8_t prev_bank_number = -1;
+uint8_t bank_number = 0xff;
+uint8_t prev_bank_number = 0xff;
 
 uint16_t* data;
 uint8_t* sounds;
@@ -241,6 +241,12 @@ uint8_t accent = 0;
 
 char filename[] = "takodrum.dat";
 
+uint16_t prev_bank_v;
+
+int diff(int a, int b) {
+  return a > b ? a - b : b - a;
+}
+
 void get_controls() {
   // char sbuf[64];
   uint16_t v = analogRead(PIN_A0) * 127.0 / 1023;
@@ -269,25 +275,31 @@ void get_controls() {
   // Serial.println(sbuf);
   variation = v < 10 ? VARIATION_AB : v < 512 ? VARIATION_B : VARIATION_A;
 
+  // read the BANK rotally switch
   v = analogRead(PIN_A3);
-  // 1Serial.println(v, DEC);
-  prev_bank_number = bank_number;
-  bank_number = (v + 102) / 204;
+  // ignore noisy values
+  if (v == prev_bank_v) {
+    uint16_t u = (v + 102) / 204;
+    if (diff(u * 204, v) < 5) {
+      prev_bank_number = bank_number;
+      bank_number = u;
+    }
+  }
+  prev_bank_v = v;
 
   accent = analogRead(PIN_A2) * (127.0 - NORMAL_VELOCITY) / 1023 + NORMAL_VELOCITY;
 }
 
-void blink_LED() {
-  char c = filename[7];
-  int i = (c >= '1' && c <= '6') ? c - '0' : 0;
+void blink_LED(int i) {
+  delay(500);
   while (i > 0) {
-    delay(300);
+    delay(200);
     analogWrite(LED_BUILTIN, 255);
-    delay(300);
+    delay(200);
     analogWrite(LED_BUILTIN, 0);
     i--;
   }
-  delay(1000);
+  delay(500);
 }
 
 void load_data() {
@@ -295,7 +307,7 @@ void load_data() {
   // if you press RECORD button on booting, load the 'takodru{bank_number}.dat' file.
   if (record) {
     filename[7] = bank_number + '1';
-    blink_LED();
+    blink_LED(bank_number);
   }
 
   Serial.println("loading SD");
@@ -323,7 +335,6 @@ void save_data() {
   }
   file.close();
   Serial.println("saved");
-  blink_LED();
 }
 
 void setup_drum_data() {
@@ -472,7 +483,10 @@ void loop() {
   data = &cur_bank.data[variation == VARIATION_B ? STEP16 : 0];
   sounds = cur_bank.sounds;
 
-  if (prev_bank_number != bank_number) {
+  if (prev_bank_number != bank_number && prev_bank_number < N_BANK && bank_number < N_BANK) {
+    // char sbuf[16];
+    // sprintf(sbuf, "%d->%d", prev_bank_number, bank_number);
+    // Serial.println(sbuf);
     Bank& prev_bank = banks[(steps == STEP16 ? 0 : 1) * N_BANK + prev_bank_number];
     int n = variation == VARIATION_AB ? 2 : 1;
     if (erase) { // erase
