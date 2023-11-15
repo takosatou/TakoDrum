@@ -372,9 +372,11 @@ uint8_t last_sound = 0;
 void touch_and_sound() {
   uint8_t sound = 0xff;
   uint8_t velocity = MPR121.getTouchData(ACCENT - 1) ?  accent : NORMAL_VELOCITY;
-  for (int i = 0; i < N_SOUND; i++) {
+  for (int i = 0; i < ACCENT; i++) {
     if (MPR121.isNewTouch(i)) {
-      noteOn(0, sounds[i], velocity);
+      if (i != ACCENT) {
+        noteOn(0, sounds[i], velocity);
+      }
       sound = i;
     }
   }
