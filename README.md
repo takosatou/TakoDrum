@@ -4,7 +4,7 @@ TakoDrum
 TakoDrumは、Bare Conductive の Touch Board を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込みも可能です。
 
 # 各部の説明
-![panel](https://github.com/takosatou/TakoDrum/assets/52827488/ffbaf423-6855-4952-863d-ea559199a3aa)
+![front2](https://github.com/takosatou/TakoDrum/assets/52827488/8fd262b4-34d7-467b-bb0e-311ded91f102)
 
 - RESET ... リセットボタン。タッチパッドの感度の自動調整をします。起動時や、タッチパッドの反応が悪い時、タッチパッドの上に紙などを置いて使用するときに押してください。リセットボタンを押すと、数秒間LEDが明滅してから復帰します。
 - VOLUME ... 音量を調整します。いちばん左に回すと電源OFFになります。
