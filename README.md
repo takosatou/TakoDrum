@@ -1,7 +1,7 @@
 TakoDrum
 
 # 概要
-TakoDrumは、Bare Conductive の Touch Board を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込みも可能です。
+TakoDrumは、Bare Conductive の [Touch Board](https://www.bareconductive.com/collections/touch-board) を使ったリズムボックスです。BOSS DR-55 のような操作性で、リズムパターンを打ち込んだり、ルーパーのようにリアルタイムに打ち込みも可能です。
 
 # 操作マニュアル
 [TakoDrum 使い方.pdf](https://github.com/takosatou/TakoDrum/files/13398629/TakoDrum.pdf)
@@ -257,8 +257,8 @@ E0〜E11までの端子から、リード線を引き出して、リン青銅板
 
 ボードの音声出力Lチャンネルを、標準ジャックを介してアンプに繋げます。
 
-アンプは、秋月のPAM8012使用2ワットD級アンプモジュールを使いました。
-https://akizukidenshi.com/catalog/g/gK-08217/
+アンプは、秋月の[PAM8012使用2ワットD級アンプモジュール](https://akizukidenshi.com/catalog/g/gK-08217/)を使いました。
+
 ![image](https://github.com/takosatou/TakoDrum/assets/52827488/b001f5dc-a3b0-44e7-b90a-09af82128b01)
 
 ### Pin13 LED
@@ -270,7 +270,7 @@ https://akizukidenshi.com/catalog/g/gK-08217/
 ## 電源
 標準的な電源プラグと、エフェクター用に使われるセンターアースの電源プラグの両方に対応するため、ダイオードブリッジを介して入力します。
 
-9Vから5Vに変換するためにDCDCコンバータを使います。今回はワンパッケージになった三端子DC/DCレギュレーター:ROHM BP5293-50 (https://akizukidenshi.com/catalog/g/gM-11188/) を使いました。
+9Vから5Vに変換するためにDCDCコンバータを使います。今回はワンパッケージになった[三端子DC/DCレギュレーター:ROHM BP5293-50](https://akizukidenshi.com/catalog/g/gM-11188/) を使いました。
 
 ![image](https://github.com/takosatou/TakoDrum/assets/52827488/bd8d2885-91b9-410e-b99b-9a8e15df8114)
 
